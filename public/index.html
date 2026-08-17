@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CoffeeHouse</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="app">
+    
+      <aside class="sidebar">
+        <div class="profile-card">
+          <span class="user-greeting">Olá, admin</span>
+          <div class="logo-title-wrapper">
+            <span class="badge-sair">Sair</span>
+            <h1 id="company-name">CoffeeHouse</h1>
+          </div>
+          
+          <div class="avatar-container">
+            <img id="logo.png" class="avatar" src="./anexos/logo.png" alt="Logo CoffeeHouse" />
+          </div>
+        </div>
+
+        <div class="order-stats">
+          <div class="stat-item">
+            <h2>Pedidos:</h2>
+            <strong id="total-activities">0</strong>
+          </div>
+          <div class="stat-item">
+            <h2>Total:</h2>
+            <span class="currency-symbol">R$ 0,00</span>
+          </div>
+        </div>
+
+        <button id="activity-tab" class="activity-tab">Meus Pedidos</button>
+
+        <footer class="sidebar-footer">
+          <h2>CoffeeHouse</h2>
+          <div class="socials">
+            <a href="./anexos/intagram.png" class="social-link" aria-label="Instagram">
+              <span class="social-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" focusable="false">
+                  <rect x="3" y="3" width="18" height="18" rx="5"></rect>
+                  <circle cx="12" cy="12" r="4.5"></circle>
+                  <circle cx="17.5" cy="6.5" r="1.2"></circle>
+                </svg>
+              </span>
+            </a>
+            <a href="./anexos/twitter_1384017.png" class="social-link" aria-label="Twitter">
+              <span class="social-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" focusable="false">
+                  <path d="M21 6.5c-.6.3-1.3.4-2 .5.7-.4 1.2-1 1.5-1.8-.7.4-1.4.7-2.2.8a3.5 3.5 0 0 0-6 3.2A10 10 0 0 1 5 5.8a3.5 3.5 0 0 0 1.1 4.7c-.5 0-1-.2-1.5-.4v.1a3.5 3.5 0 0 0 2.8 3.4c-.4.1-.9.1-1.3 0a3.5 3.5 0 0 0 3.3 2.4A7 7 0 0 1 4 17.3a10 10 0 0 0 5.4 1.6c6.5 0 10.1-5.5 10.1-10.2v-.5c.7-.5 1.2-1 1.5-1.7Z"></path>
+                </svg>
+              </span>
+            </a>
+            <a href="./anexos/tiktok.png" class="social-link" aria-label="TikTok">
+              <span class="social-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" role="img" focusable="false">
+                  <path d="M14.6 4.2v8a3.6 3.6 0 1 1-3.5-3.6h.5v2.6h-.5a1 1 0 1 0 1 1V3h2.5c.4 1.7 1.8 3 3.5 3.2v2.4a6 6 0 0 1-3.5-1.4Z"></path>
+                </svg>
+              </span>
+            </a>
+          </div>
+          <small>Copyright 2024</small>
+        </footer>
+      </aside>
+
+      
+      <main class="content">
+   
+        <nav class="filters" id="filters">
+          <button data-type="cafe" class="active">☕ Café</button>
+          <button data-type="lanches">🥐 Lanches</button>
+          <button data-type="sobremesas">🍰 Sobremesas</button>
+           <button class="login">login</button>
+        </nav>
+
+        <section id="activities-list" class="activities">
+          
+     
+          <article class="activity-card">
+            <div class="activity-header">
+              <h3 class="activity-title">☕ Cappuccino</h3>
+            </div>
+            <div class="activity-body">
+              <div class="metrics">
+                <span>Quantidade: 1 | Tempo: 5 min | Preço: R$ 12,00</span>
+              </div>
+              <div class="actions">
+                <button class="like-btn">💖 Favoritar</button>
+                <button class="comment-btn">💬 Avaliar</button>
+                <button class="order-btn">🛒 Pedir</button>
+              </div>
+            </div>
+          </article>
+
+          <article class="activity-card">
+            <div class="activity-header">
+              <h3 class="activity-title">☕ Café Expresso</h3>
+            </div>
+            <div class="activity-body">
+              <div class="metrics">
+                <span>Quantidade: 1 | Tempo: 3 min | Preço: R$ 8,00</span>
+              </div>
+              <div class="actions">
+                <button class="like-btn">💖 Favoritar</button>
+                <button class="comment-btn">💬 Avaliar</button>
+                <button class="order-btn">🛒 Pedir</button>
+              </div>
+            </div>
+          </article>
+
+        </section>
+
+        
+        <div id="pagination" class="pagination">
+          <button class="page-arrow">← Anterior</button>
+          <button class="page-num active">1</button>
+          <button class="page-num">2</button>
+          <button class="page-num">3</button>
+          <button class="page-arrow">Próximo →</button>
+        </div>
+      </main>
+    </div>
+
+  
+    <template id="activity-card-template">
+      <article class="activity-card">
+        <div class="activity-header">
+          <h3 class="activity-title"></h3>
+        </div>
+        <div class="activity-body">
+          <div class="metrics">
+            <span>Quantidade: <span class="qty">1</span> | Tempo: <span class="time"></span> | Preço: R$ <span class="price"></span></span>
+          </div>
+          <div class="actions">
+            <button class="like-btn">💖 Favoritar</button>
+            <button class="comment-btn">💬 Avaliar</button>
+            <button class="order-btn">🛒 Pedir</button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <script src="app.js"></script>
+  </body>
+</html>

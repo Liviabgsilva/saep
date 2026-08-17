@@ -1,0 +1,10 @@
+id,nome,categoria,preco,tempo_preparo,emoji
+1,Cappuccino,cafe,12.00,5,☕
+2,Café Expresso,cafe,8.00,3,☕
+3,Mocha,cafe,15.00,6,☕
+4,Croissant,lanches,14.00,4,🥐
+5,Pão de Queijo,lanches,9.00,3,🥐
+6,Sanduíche Natural,lanches,18.00,7,🥐
+7,Bolo de Chocolate,sobremesas,10.00,3,🍰
+8,Cheesecake,sobremesas,16.00,4,🍰
+9,Brownie,sobremesas,11.00,3,🍰

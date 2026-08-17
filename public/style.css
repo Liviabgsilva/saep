@@ -1,0 +1,309 @@
+:root {
+  --bg-geral: #f3e7d8;         /* Fundo geral da aplicação */
+  --sidebar-bg: #4b2c25;       /* Fundo da barra lateral */
+  --buttons-bg: #6f493d;       /* Cor padrão dos botões e ações */
+  --cards-bg: #fff8dc;         /* Fundo creme dos cards de café */
+  --soft-borders: #b89b85;     /* Cor para bordas suaves e sombras */
+  --danger-actions: #a94442;   /* Cor para o botão Sair / erros */
+  --text-main: #2b1008;        /* Cor principal dos textos e títulos */
+  --white: #ffffff;
+}
+
+* { 
+  box-sizing: border-box; 
+  font-family: 'Inter', Georgia, serif; 
+}
+
+body { 
+  margin: 0; 
+  background: var(--bg-geral); 
+  color: var(--text-main);
+}
+
+.app { 
+  max-width: 100vw; 
+  margin: 0; 
+  display: grid; 
+  grid-template-columns: 260px 1fr; 
+  min-height: 100vh;
+}
+
+/* --- BARRA LATERAL (SIDEBAR) --- */
+.sidebar { 
+  background: var(--sidebar-bg); 
+  color: var(--white); 
+  display: flex; 
+  flex-direction: column; 
+  padding: 20px 0;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-card { 
+  text-align: center; 
+  padding: 0 16px 20px 16px; 
+}
+
+.user-greeting {
+  display: block;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 25px;
+  color: var(--white);
+}
+
+.logo-title-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+  
+}
+
+.badge-sair {
+  background: var(--danger-actions);
+  color: var(--white);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: bold;
+}
+
+#company-name {
+  font-size: 26px;
+  margin: 0;
+  font-family: Georgia, serif;
+  letter-spacing: 1px;
+  color: var(--white);
+}
+
+.avatar-container {
+  margin: 15px auto;
+  background: var(--white);
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 4px solid var(--white);
+}
+
+.avatar { 
+  width: 90%; 
+  height: 90%; 
+  object-fit: contain; 
+}
+
+/* Indicadores de Pedidos e Total */
+.order-stats {
+  padding: 10px 24px;
+  text-align: center;
+}
+
+.stat-item h2 {
+  font-size: 18px;
+  margin: 15px 0 5px 0;
+  font-weight: 600;
+  color: var(--white);
+}
+
+.stat-item strong, 
+.stat-item .currency-symbol {
+  font-size: 14px;
+  opacity: 0.9;
+  display: block;
+  margin-bottom: 5px;
+  color: var(--white);
+}
+
+.activity-tab { 
+  background: transparent; 
+  color: var(--white); 
+  border: 0; 
+  text-align: center; 
+  padding: 15px; 
+  font-size: 20px; 
+  font-weight: bold;
+  cursor: pointer; 
+  margin-top: 10px;
+  text-decoration: underline;
+}
+
+.sidebar-footer { 
+  margin-top: auto; 
+  text-align: center; 
+  padding: 16px; 
+  font-size: 12px;
+  color: var(--white);
+}
+
+.sidebar-footer h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.socials { 
+  display: flex; 
+  justify-content: center; 
+  gap: 15px;
+  margin-bottom: 12px; 
+}
+
+.social-link { 
+  color: var(--white); 
+}
+
+.social-icon svg { 
+  width: 20px; 
+  height: 20px; 
+  fill: currentColor; 
+}
+
+/* --- CONTEÚDO PRINCIPAL --- */
+.content { 
+  padding: 20px 30px; 
+}
+
+/* Abas de Categorias Superiores */
+.filters { 
+  display: flex; 
+  gap: 15px; 
+  background: var(--sidebar-bg); 
+  padding: 10px 20px; 
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.filters button { 
+  background: transparent; 
+  color: var(--white); 
+  border: 0; 
+  padding: 10px 30px; 
+  cursor: pointer; 
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filters button.active,
+.filters button:hover { 
+  background: var(--buttons-bg); 
+}
+
+/* Cards dos Produtos */
+.activities { 
+  margin-top: 25px; 
+  display: grid; 
+  gap: 20px; 
+}
+
+.activity-card { 
+  border: 1px solid var(--soft-borders);
+  background: var(--cards-bg); 
+  border-radius: 20px;
+  padding: 25px 30px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03), inset -3px -3px 0px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.activity-header { 
+  padding: 0;
+}
+
+.activity-title { 
+  margin: 0; 
+  font-size: 22px;
+  color: var(--text-main);
+  font-family: Georgia, serif;
+}
+
+.activity-body { 
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 0;
+}
+
+.metrics { 
+  font-size: 16px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+/* Botões de Ação do Card */
+.actions { 
+  display: flex; 
+  gap: 12px; 
+}
+
+.like-btn, .comment-btn, .order-btn { 
+  background: var(--buttons-bg); 
+  color: var(--white);
+  border: 1px solid var(--soft-borders); 
+  padding: 8px 20px; 
+  font-size: 14px; 
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer; 
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.like-btn:hover, .comment-btn:hover, .order-btn:hover {
+  opacity: 0.9;
+}
+
+.like-btn:active, .comment-btn:active, .order-btn:active {
+  transform: scale(0.97);
+}
+
+/* --- PAGINAÇÃO --- */
+.pagination { 
+  display: flex; 
+  justify-content: center; 
+  margin-top: 35px; 
+  gap: 6px; 
+}
+
+.page-arrow, .page-num { 
+  border: 1px solid var(--soft-borders); 
+  background: var(--buttons-bg); 
+  color: var(--white);
+  padding: 8px 16px; 
+  font-size: 14px;
+  font-weight: bold;
+  border-radius: 6px;
+  cursor: pointer; 
+}
+
+.page-num {
+  padding: 8px 12px;
+}
+
+.page-num.active { 
+  background: var(--cards-bg);
+  color: var(--text-main);
+  border: 2px solid var(--sidebar-bg);
+}
+
+.hidden { display: none !important; }
+
+.error { color: var(--danger-actions); }
+
+@media (max-width: 960px) {
+  .app { grid-template-columns: 1fr; }
+  .content { padding: 15px; }
+  .filters { flex-wrap: wrap; }
+}
