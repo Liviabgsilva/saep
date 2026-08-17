@@ -1,81 +1,21 @@
 const path = require('path');
 const express = require('express');
 const cors = require('cors');
-const { initDb, get, all, run } = require('./db');
+
+const {
+  initDb,
+  get,
+  all,
+  run
+} = require('./db');
 
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
-
-
-
-function formatProductRow(row) {
-  return {
-    id: Number(row.id),
-
-    title: row.categoria,
-
-    type: row.categoria,
-
-    name: row.nome,
-
-    quantity: Number(row.quantidade || 0),
-
-    time: Number(row.tempo_preparo || 0),
-
-    price: Number(row.preco || 0),
-
-    emoji: row.emoji,
-
-    likesCount: Number(row.total_curtidas || 0),
-
-    commentsCount: Number(row.total_comentarios || 0),
-
-    likedByCurrentUser:
-      Number(row.curtida_usuario_logado || 0) > 0
-  };
-}
-
-
-
-async function getGlobalStats() {
-  const stats = await get(`
-    SELECT
-      COUNT(*) AS total_pedidos,
-      COALESCE(SUM(preco * quantidade), 0) AS total_compras
-    FROM produto
-  `);
-
-  return {
-    totalOrders: Number(stats.total_pedidos || 0),
-    totalPurchases: Number(stats.total_compras || 0)
-  };
-}
-
-
-
-async function getUserStats(userId) {
-  const stats = await get(
-    `
-    SELECT
-      COUNT(*) AS total_pedidos,
-      COALESCE(SUM(preco * quantidade), 0) AS total_compras
-    FROM produto
-    WHERE usuario_id = ?
-    `,
-    [userId]
-  );
-
-  return {
-    totalOrders: Number(stats.total_pedidos || 0),
-    totalPurchases: Number(stats.total_compras || 0)
-  };
-}
-
-
 
 app.get('/api/company', async (req, res) => {
   try {
@@ -84,7 +24,7 @@ app.get('/api/company', async (req, res) => {
         id,
         nome,
         url_logo
-      FROM empresa
+      FROM public.empresa
       WHERE id = 1
     `);
 
@@ -94,24 +34,15 @@ app.get('/api/company', async (req, res) => {
       });
     }
 
-    const userId = Number(req.query.userId || 0);
-
-    const stats = userId
-      ? await getUserStats(userId)
-      : await getGlobalStats();
-
     res.json({
       company: {
-        id: company.id,
+        id: Number(company.id),
         name: company.nome,
         logoUrl: company.url_logo
-      },
-
-      stats
+      }
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
@@ -120,77 +51,61 @@ app.get('/api/company', async (req, res) => {
   }
 });
 
-
-
 app.post('/api/login', async (req, res) => {
-
   try {
+    const {
+      nome,
+      password,
+      senha
+    } = req.body;
 
-    const { email, password } = req.body;
+    const senhaFinal = password || senha;
 
-    if (!email || !password) {
-
+    if (!nome || !senhaFinal) {
       return res.status(400).json({
-        message: 'email ou senha obrigatório'
+        message: 'Nome e senha são obrigatórios.'
       });
-
     }
 
     const user = await get(
       `
       SELECT
         id,
-        nome,
-        email,
-        url_foto
-      FROM usuarios
-      WHERE email = ?
+        nome
+      FROM public.usuarios
+      WHERE nome = ?
       AND senha = ?
       `,
-      [email, password]
+      [
+        nome,
+        senhaFinal
+      ]
     );
 
     if (!user) {
-
       return res.status(401).json({
-        message: 'email ou senha incorreta'
+        message: 'Nome ou senha incorretos.'
       });
-
     }
 
-    const stats = await getUserStats(user.id);
-
     res.json({
-
       user: {
         id: Number(user.id),
-        name: user.nome,
-        email: user.email,
-        photoUrl: user.url_foto
-      },
-
-      stats
-
+        name: user.nome
+      }
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
       message: 'Erro no login.'
     });
-
   }
-
 });
 
-
-
 app.get('/api/products', async (req, res) => {
-
   try {
-
     const page = Math.max(
       Number(req.query.page || 1),
       1
@@ -203,596 +118,471 @@ app.get('/api/products', async (req, res) => {
 
     const offset = (page - 1) * limit;
 
-    const type = req.query.type || '';
+    const type =
+      req.query.type ||
+      req.query.categoria ||
+      '';
 
-    const currentUserId =
-      Number(req.query.currentUserId || 0);
-
-    const where = [];
-
-    const params = [];
-
-   
+    let totalRow;
+    let products;
 
     if (type) {
+      totalRow = await get(
+        `
+        SELECT COUNT(*) AS total
+        FROM public.produto
+        WHERE LOWER(categoria) = LOWER(?)
+        `,
+        [type]
+      );
 
-      where.push('p.categoria = ?');
+      products = await all(
+        `
+        SELECT
+          id,
+          nome,
+          categoria,
+          preco,
+          tempo_preparo,
+          emoji
+        FROM public.produto
+        WHERE LOWER(categoria) = LOWER(?)
+        ORDER BY id DESC
+        LIMIT ?
+        OFFSET ?
+        `,
+        [
+          type,
+          limit,
+          offset
+        ]
+      );
 
-      params.push(type);
+    } else {
+      totalRow = await get(`
+        SELECT COUNT(*) AS total
+        FROM public.produto
+      `);
 
+      products = await all(
+        `
+        SELECT
+          id,
+          nome,
+          categoria,
+          preco,
+          tempo_preparo,
+          emoji
+        FROM public.produto
+        ORDER BY id DESC
+        LIMIT ?
+        OFFSET ?
+        `,
+        [
+          limit,
+          offset
+        ]
+      );
     }
-
-    const whereSql = where.length
-      ? `WHERE ${where.join(' AND ')}`
-      : '';
-
-
-
-    const totalRow = await get(
-      `
-      SELECT COUNT(*) AS total
-      FROM produto p
-      ${whereSql}
-      `,
-      params
-    );
-
-
-
-    const rows = await all(
-      `
-      SELECT
-
-        p.id,
-
-        p.nome,
-
-        p.categoria,
-
-        p.quantidade,
-
-        p.tempo_preparo,
-
-        p.preco,
-
-        p.emoji,
-
-        (
-          SELECT COUNT(*)
-          FROM curtidas c
-          WHERE c.atividade_id = p.id
-        ) AS total_curtidas,
-
-        (
-          SELECT COUNT(*)
-          FROM comentarios c
-          WHERE c.atividade_id = p.id
-        ) AS total_comentarios,
-
-        (
-          SELECT COUNT(*)
-          FROM curtidas c2
-          WHERE c2.atividade_id = p.id
-          AND c2.usuario_id = ?
-        ) AS curtida_usuario_logado
-
-      FROM produto p
-
-      ${whereSql}
-
-      ORDER BY p.id DESC
-
-      LIMIT ?
-      OFFSET ?
-      `,
-      [
-        currentUserId,
-        ...params,
-        limit,
-        offset
-      ]
-    );
 
     const total = Number(totalRow.total);
 
+    const data = products.map((product) => {
+      return {
+        id: Number(product.id),
+        title: product.nome,
+        type: product.categoria,
+        name: product.nome,
+        category: product.categoria,
+        time: Number(product.tempo_preparo),
+        price: Number(product.preco),
+        emoji: product.emoji
+      };
+    });
+
     res.json({
-
-      data: rows.map(formatProductRow),
-
+      data,
       page,
-
       limit,
-
       total,
-
       totalPages: Math.max(
         Math.ceil(total / limit),
         1
       )
-
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
       message: 'Erro ao carregar produtos.'
     });
-
   }
-
 });
 
-
-
-app.get('/api/users/:userId/products', async (req, res) => {
-
+app.get('/api/products/:id', async (req, res) => {
   try {
+    const id = Number(req.params.id);
 
-    const userId = Number(req.params.userId);
-
-    const rows = await all(
+    const product = await get(
       `
       SELECT
-
-        p.id,
-        p.nome,
-        p.categoria,
-        p.quantidade,
-        p.tempo_preparo,
-        p.preco,
-        p.emoji,
-
-        (
-          SELECT COUNT(*)
-          FROM curtidas c
-          WHERE c.atividade_id = p.id
-        ) AS total_curtidas,
-
-        (
-          SELECT COUNT(*)
-          FROM comentarios c
-          WHERE c.atividade_id = p.id
-        ) AS total_comentarios,
-
-        0 AS curtida_usuario_logado
-
-      FROM produto p
-
-      WHERE p.usuario_id = ?
-
-      ORDER BY p.id DESC
+        id,
+        nome,
+        categoria,
+        preco,
+        tempo_preparo,
+        emoji
+      FROM public.produto
+      WHERE id = ?
       `,
-      [userId]
+      [id]
     );
 
+    if (!product) {
+      return res.status(404).json({
+        message: 'Produto não encontrado.'
+      });
+    }
+
     res.json({
-      data: rows.map(formatProductRow)
+      product: {
+        id: Number(product.id),
+        title: product.nome,
+        name: product.nome,
+        type: product.categoria,
+        category: product.categoria,
+        time: Number(product.tempo_preparo),
+        price: Number(product.preco),
+        emoji: product.emoji
+      }
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
-      message: 'Erro ao carregar os pedidos do usuário.'
+      message: 'Erro ao buscar produto.'
     });
-
   }
-
 });
 
-
-
-app.post('/api/products', async (req, res) => {
-
+app.post('/api/orders', async (req, res) => {
   try {
-
     const {
-      userId,
-      type,
-      name,
-      quantity,
-      time,
-      price,
-      emoji
+      produto_id,
+      productId,
+      quantidade
     } = req.body;
 
- 
+    const productIdFinal = Number(
+      produto_id || productId
+    );
 
-    if (
-      !userId ||
-      !type ||
-      !name ||
-      quantity === undefined ||
-      time === undefined ||
-      price === undefined
-    ) {
+    const quantidadeFinal = Number(
+      quantidade || 1
+    );
 
+    if (!productIdFinal) {
       return res.status(400).json({
-        message: 'Campo obrigatório'
+        message: 'Produto obrigatório.'
       });
-
-    }
-
-
-
-    const tiposPermitidos = [
-      'café',
-      'Lanches',
-      'sobremesas'
-    ];
-
-    if (!tiposPermitidos.includes(type)) {
-
-      return res.status(400).json({
-        message: 'Tipo de produto inválido.'
-      });
-
-    }
-
-    const parsedQuantity =
-      Number(quantity);
-
-    const parsedTime =
-      Number(time);
-
-    const parsedPrice =
-      Number(price);
-
-   
-
-    if (
-      !Number.isInteger(parsedQuantity) ||
-      parsedQuantity <= 0
-    ) {
-
-      return res.status(400).json({
-        message: 'Quantidade deve ser um número inteiro.'
-      });
-
     }
 
     if (
-      !Number.isFinite(parsedTime) ||
-      parsedTime <= 0
+      !Number.isInteger(quantidadeFinal) ||
+      quantidadeFinal <= 0
     ) {
-
       return res.status(400).json({
-        message: 'Tempo inválido.'
+        message: 'Quantidade inválida.'
       });
-
     }
 
-    if (
-      !Number.isFinite(parsedPrice) ||
-      parsedPrice < 0
-    ) {
-
-      return res.status(400).json({
-        message: 'Preço inválido.'
-      });
-
-    }
-
-
-    const result = await run(
+    const product = await get(
       `
-      INSERT INTO produto
-      (
-        usuario_id,
+      SELECT
+        id,
         nome,
-        categoria,
-        quantidade,
-        tempo_preparo,
-        preco,
-        emoji
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+        preco
+      FROM public.produto
+      WHERE id = ?
+      `,
+      [productIdFinal]
+    );
 
-      RETURNING id
+    if (!product) {
+      return res.status(404).json({
+        message: 'Produto não encontrado.'
+      });
+    }
+
+    const nextIdRow = await get(`
+      SELECT
+        COALESCE(MAX(id), 0) + 1 AS proximo_id
+      FROM public.pedidos
+    `);
+
+    const nextId = Number(
+      nextIdRow.proximo_id
+    );
+
+    await run(
+      `
+      INSERT INTO public.pedidos
+      (
+        id,
+        produto_id,
+        quantidade,
+        data_pedido
+      )
+      VALUES (?, ?, ?, ?)
       `,
       [
-        userId,
-        name,
-        type,
-        parsedQuantity,
-        parsedTime,
-        parsedPrice,
-        emoji || '☕'
+        nextId,
+        productIdFinal,
+        quantidadeFinal,
+        new Date()
       ]
     );
 
-
-
-    const created = await get(
-      `
-      SELECT
-
-        p.id,
-        p.nome,
-        p.categoria,
-        p.quantidade,
-        p.tempo_preparo,
-        p.preco,
-        p.emoji,
-
-        0 AS total_curtidas,
-        0 AS total_comentarios,
-        0 AS curtida_usuario_logado
-
-      FROM produto p
-
-      WHERE p.id = ?
-      `,
-      [result.rows[0].id]
-    );
-
     res.status(201).json({
-
-      product: formatProductRow(created)
-
+      message: 'Pedido criado com sucesso.',
+      order: {
+        id: nextId,
+        produtoId: productIdFinal,
+        produto: product.nome,
+        quantidade: quantidadeFinal,
+        preco: Number(product.preco)
+      }
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
       message: 'Erro ao criar pedido.'
     });
-
   }
-
 });
 
-
-
-app.post('/api/products/:id/like', async (req, res) => {
-
+app.get('/api/orders', async (req, res) => {
   try {
-
-    const productId =
-      Number(req.params.id);
-
-    const { userId } = req.body;
-
-    if (!userId) {
-
-      return res.status(400).json({
-        message: 'Usuário não autenticado.'
-      });
-
-    }
-
-
-
-    const existing = await get(
-      `
-      SELECT usuario_id
-      FROM curtidas
-      WHERE usuario_id = ?
-      AND atividade_id = ?
-      `,
-      [
-        userId,
-        productId
-      ]
-    );
-
-
-
-    if (existing) {
-
-      await run(
-        `
-        DELETE FROM curtidas
-
-        WHERE usuario_id = ?
-        AND atividade_id = ?
-        `,
-        [
-          userId,
-          productId
-        ]
-      );
-
-    }
-
-
-
-    else {
-
-      await run(
-        `
-        INSERT INTO curtidas
-        (
-          usuario_id,
-          atividade_id
-        )
-
-        VALUES (?, ?)
-        `,
-        [
-          userId,
-          productId
-        ]
-      );
-
-    }
-
-  
-
-    const likes = await get(
-      `
-      SELECT COUNT(*) AS curtidas
-
-      FROM curtidas
-
-      WHERE atividade_id = ?
-      `,
-      [productId]
-    );
+    const orders = await all(`
+      SELECT
+        pe.id,
+        pe.produto_id,
+        p.nome AS produto,
+        p.categoria,
+        p.preco,
+        p.emoji,
+        pe.quantidade,
+        pe.data_pedido
+      FROM public.pedidos pe
+      INNER JOIN public.produto p
+        ON p.id = pe.produto_id
+      ORDER BY pe.data_pedido DESC
+    `);
 
     res.json({
-
-      liked: !existing,
-
-      likesCount:
-        Number(likes.curtidas)
-
+      data: orders.map((order) => ({
+        id: Number(order.id),
+        produtoId: Number(order.produto_id),
+        product: order.produto,
+        category: order.categoria,
+        price: Number(order.preco),
+        emoji: order.emoji,
+        quantity: Number(order.quantidade),
+        date: order.data_pedido
+      }))
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
-      message: 'Erro ao curtir produto.'
+      message: 'Erro ao carregar pedidos.'
     });
-
   }
-
 });
 
-
-app.get('/api/products/:id/comments', async (req, res) => {
-
+app.get('/api/products/:id/reviews', async (req, res) => {
   try {
+    const productId = Number(
+      req.params.id
+    );
 
-    const productId =
-      Number(req.params.id);
-
-    const comments = await all(
+    const reviews = await all(
       `
       SELECT
-
-        c.id,
-
-        c.conteudo AS content,
-
-        c.data_criacao AS created_at,
-
-        u.nome AS user_name,
-
-        u.url_foto AS user_photo
-
-      FROM comentarios c
-
-      JOIN usuarios u
-        ON u.id = c.usuario_id
-
-      WHERE c.atividade_id = ?
-
-      ORDER BY c.data_criacao DESC
+        a.id,
+        a.produto_id,
+        a.nota,
+        a.comentario,
+        a.data_avaliacao
+      FROM public.avaliacoes a
+      WHERE a.produto_id = ?
+      ORDER BY a.data_avaliacao DESC
       `,
       [productId]
     );
 
     res.json({
-      comments
+      data: reviews.map((review) => ({
+        id: Number(review.id),
+        productId: Number(review.produto_id),
+        rating: Number(review.nota),
+        comment: review.comentario,
+        date: review.data_avaliacao
+      }))
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
-      message: 'Erro ao listar comentários.'
+      message: 'Erro ao carregar avaliações.'
     });
-
   }
-
 });
 
-
-app.post('/api/products/:id/comments', async (req, res) => {
-
+app.post('/api/products/:id/reviews', async (req, res) => {
   try {
-
-    const productId =
-      Number(req.params.id);
+    const productId = Number(
+      req.params.id
+    );
 
     const {
-      userId,
-      content
+      nota,
+      rating,
+      comentario,
+      comment
     } = req.body;
 
-    if (!userId) {
+    const notaFinal = Number(
+      nota || rating
+    );
 
+    const comentarioFinal =
+      comentario ||
+      comment ||
+      '';
+
+    if (
+      !Number.isInteger(notaFinal) ||
+      notaFinal < 1 ||
+      notaFinal > 5
+    ) {
       return res.status(400).json({
-        message: 'Usuário não autenticado.'
+        message: 'A nota deve estar entre 1 e 5.'
       });
-
     }
 
     if (
-      !content ||
-      content.trim().length < 2
+      comentarioFinal.trim().length < 2
     ) {
-
       return res.status(400).json({
-        message:
-          'não é possível enviar um comentário vazio'
+        message: 'O comentário deve ter pelo menos 2 caracteres.'
       });
-
     }
+
+    const product = await get(
+      `
+      SELECT id
+      FROM public.produto
+      WHERE id = ?
+      `,
+      [productId]
+    );
+
+    if (!product) {
+      return res.status(404).json({
+        message: 'Produto não encontrado.'
+      });
+    }
+
+    const nextIdRow = await get(`
+      SELECT
+        COALESCE(MAX(id), 0) + 1 AS proximo_id
+      FROM public.avaliacoes
+    `);
+
+    const nextId = Number(
+      nextIdRow.proximo_id
+    );
 
     await run(
       `
-      INSERT INTO comentarios
+      INSERT INTO public.avaliacoes
       (
-        usuario_id,
-        atividade_id,
-        conteudo,
-        data_criacao
+        id,
+        produto_id,
+        nota,
+        comentario,
+        data_avaliacao
       )
-
-      VALUES (?, ?, ?, ?)
+      VALUES (?, ?, ?, ?, ?)
       `,
       [
-        userId,
+        nextId,
         productId,
-        content.trim(),
+        notaFinal,
+        comentarioFinal.trim(),
         new Date()
       ]
     );
 
-    const count = await get(
-      `
-      SELECT COUNT(*) AS total
-
-      FROM comentarios
-
-      WHERE atividade_id = ?
-      `,
-      [productId]
-    );
-
     res.status(201).json({
-
-      commentsCount:
-        Number(count.total)
-
+      message: 'Avaliação adicionada com sucesso.',
+      review: {
+        id: nextId,
+        productId,
+        rating: notaFinal,
+        comment: comentarioFinal.trim()
+      }
     });
 
   } catch (error) {
-
     console.error(error);
 
     res.status(500).json({
-      message: 'Erro ao comentar produto.'
+      message: 'Erro ao criar avaliação.'
     });
-
   }
-
 });
 
+app.get('/api/stats', async (req, res) => {
+  try {
+    const products = await get(`
+      SELECT COUNT(*) AS total
+      FROM public.produto
+    `);
 
+    const orders = await get(`
+      SELECT COUNT(*) AS total
+      FROM public.pedidos
+    `);
 
-app.get('*', (req, res) => {
+    const reviews = await get(`
+      SELECT COUNT(*) AS total
+      FROM public.avaliacoes
+    `);
 
+    res.json({
+      products: Number(products.total),
+      orders: Number(orders.total),
+      reviews: Number(reviews.total)
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    res.status(500).json({
+      message: 'Erro ao carregar estatísticas.'
+    });
+  }
+});
+
+app.get('/{*splat}', (req, res) => {
   res.sendFile(
     path.join(
       __dirname,
@@ -800,35 +590,24 @@ app.get('*', (req, res) => {
       'index.html'
     )
   );
-
 });
 
-
-
 initDb()
-
   .then(() => {
-
     app.listen(
       PORT,
       () => {
-
         console.log(
           `CoffeeHouse rodando em http://localhost:${PORT}`
         );
-
       }
     );
-
   })
-
   .catch((error) => {
-
     console.error(
       'Erro ao iniciar banco:',
       error
     );
 
     process.exit(1);
-
   });
