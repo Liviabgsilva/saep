@@ -9,6 +9,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
+  <div class="modal-overlay" id="login-modal">
+  <div class="login-card">
+    <h2>Login</h2>
+    <button class="close-btn" onclick="fecharLogin()">&times;</button>
+    <form class="login-form">
+      <input type="text" placeholder="Digite seu nome" required />
+      <input type="password" placeholder="Digite sua senha" required />
+      <button type="submit" class="btn-submit">Entrar</button>
+    </form>
+  </div>
+</div>
   <body>
     <div class="app">
     
@@ -16,7 +27,7 @@
         <div class="profile-card">
           <span class="user-greeting">Olá, admin</span>
           <div class="logo-title-wrapper">
-            <span class="badge-sair">Sair</span>
+           <button >Sair</button>
             <h1 id="company-name">CoffeeHouse</h1>
           </div>
           

@@ -55,7 +55,6 @@ body {
   position: relative;
   display: inline-block;
   margin-bottom: 20px;
-  
 }
 
 .badge-sair {
@@ -306,4 +305,88 @@ body {
   .app { grid-template-columns: 1fr; }
   .content { padding: 15px; }
   .filters { flex-wrap: wrap; }
+}
+
+/* Fundo escurecido que cobre a tela inteira */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.55);
+  display: flex; /* Altera para 'none' se quiser que comece escondido */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+/* Card central com tom creme */
+.login-card {
+  background-color: #faf0d7;
+  padding: 32px 28px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+}
+
+.login-card h2 {
+  color: #4a2c20;
+  margin-bottom: 20px;
+  font-size: 1.5rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  outline: none;
+}
+
+.login-form input::placeholder {
+  color: #a0a0a0;
+}
+
+.btn-submit {
+  background-color: #633a2b;
+  color: #ffffff;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.btn-submit:hover {
+  background-color: #492a1e;
+}
+
+/* O container do login precisa ter position: relative */
+.login-card {
+  position: relative;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 15px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  font-weight: bold;
+  cursor: pointer;
+  color: #4a2c20;
 }
